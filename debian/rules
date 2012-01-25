@@ -48,8 +48,8 @@ install: build
 
 	# Add here commands to install the package into debian/mintdisk.
 	#$(MAKE) install DESTDIR=$(CURDIR)/debian/mintdisk
-	mkdir -p $(CURDIR)/debian/mintdesktop
-	cp -r $(CURDIR)/usr $(CURDIR)/debian/mintdesktop/
+	mkdir -p $(CURDIR)/debian/solusdesktop
+	cp -r $(CURDIR)/usr $(CURDIR)/debian/solusdesktop/
 
 # Build architecture-independent files here.
 binary-indep: build install
