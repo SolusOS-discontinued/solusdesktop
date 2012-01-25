@@ -63,7 +63,7 @@ class MintDesktop:
     ''' Create the UI '''
     def __init__(self):
         # load our glade ui file in
-        self.gladefile = '/usr/lib/linuxmint/mintDesktop/mintDesktop.ui'
+        self.gladefile = '/usr/lib/solusos/solusDesktop/solusDesktop.ui'
         self.wTree = gtk.Builder()
         self.wTree.add_from_file(self.gladefile)
         self.get_widget("main_window").connect("destroy", gtk.main_quit)
@@ -78,10 +78,14 @@ class MintDesktop:
         side_gnome_desktop_options = SidePage(0, _("Desktop"), "user-desktop")
         side_gnome_windows = SidePage(1, _("Windows"), "gnome-windows")
         side_gnome_interface = SidePage(2, _("Interface"), "preferences-desktop")
-        side_terminal = SidePage(3, _("Terminal"), "terminal")
-        side_wallpaper = SidePage(4, _("Wallpaper"), "preferences-wallpaper")
+        side_gnome_effects = SidePage(3, _("Effects"), "preferences-other")
+        #side_terminal = SidePage(3, _("Terminal"), "terminal")
+        side_wallpaper = SidePage(3, _("Wallpaper"), "preferences-wallpaper")
         # Define which side-options apply to which desktop
-        desktop = commands.getoutput("grep DESKTOP /etc/linuxmint/info | cut -f 2 -d \"=\"").lower()
+        #desktop = commands.getoutput("grep DESKTOP /etc/linuxmint/info | cut -f 2 -d \"=\"").lower()
+        
+        self.sidePages = [side_gnome_desktop_options, side_gnome_windows, side_gnome_interface, side_gnome_effects]
+        '''
         if desktop == "gnome":
             self.sidePages = [side_gnome_desktop_options, side_gnome_windows, side_gnome_interface, side_terminal]
         elif desktop == "kde":
@@ -94,7 +98,7 @@ class MintDesktop:
             self.sidePages = [side_terminal, side_wallpaper]
         else:
             self.sidePages = [side_terminal]
-            
+        '''    
         # create the backing store for the side nav-view.                    
         theme = gtk.icon_theme_get_default()
         self.store = gtk.ListStore(str, gtk.gdk.Pixbuf)
@@ -125,8 +129,6 @@ class MintDesktop:
         self.get_widget("label_icons").set_markup("<b>" + _("Icons") + "</b>")
         self.get_widget("label_context_menus").set_markup("<b>" + _("Context menus") + "</b>")
         self.get_widget("label_toolbars").set_markup("<b>" + _("Toolbars") + "</b>")
-        self.get_widget("label_terminal").set_markup("<b>" + _("Terminal") + "</b>")
-
         self.get_widget("caption_desktop_icons").set_markup("<small><i><span foreground=\"#555555\">" + _("Select the items you want to see on the desktop:") + "</span></i></small>")
 
         self.get_widget("checkbox_computer").set_label(_("Computer"))
@@ -138,7 +140,6 @@ class MintDesktop:
         self.get_widget("checkbutton_resources").set_label(_("Don't show window content while dragging them"))
         self.get_widget("checkbox_compositing").set_label(_("Use Gnome compositing"))
         self.get_widget("checkbutton_titlebar").set_label(_("Use system font in titlebar"))
-        self.get_widget("checkbox_fortunes").set_label(_("Show fortune cookies"))
 
         self.get_widget("label_layouts").set_text(_("Buttons layout:"))
 
@@ -168,29 +169,6 @@ class MintDesktop:
         self.init_checkbox("/desktop/gnome/interface/show_unicode_menu", "checkbutton_unicode")
         self.init_checkbox("/desktop/gnome/interface/buttons_have_icons", "checkbutton_button_icons")
         
-        # terminal page
-        self.init_checkbox("/desktop/linuxmint/terminal/show_fortunes", "checkbox_fortunes")
-		
-        # wallpaper page
-        styles = gtk.ListStore(str,str)
-        styles.append(["tile", _("Tile")])
-        styles.append(["zoom", _("Zoom")])
-        styles.append(["center", _("Center")])
-        styles.append(["scale", _("Scale")])
-        styles.append(["stretch", _("Stretch")])
-        self.get_widget("combobox_styles").set_model(styles)
-        cell = gtk.CellRendererText()
-        self.get_widget("combobox_styles").pack_start(cell, True)
-        self.get_widget("combobox_styles").add_attribute(cell, 'text', 1)
-        # wallpaper (gradients)
-        colors = gtk.ListStore(str,str)
-        colors.append(["solid", _("Solid colour")])
-        colors.append(["horizontal", _("Horizontal gradient")])
-        colors.append(["vertical", _("Vertical gradient")])
-        self.get_widget("combobox_colors").set_model(colors)
-        cell = gtk.CellRendererText()
-        self.get_widget("combobox_colors").pack_start(cell, True)
-        self.get_widget("combobox_colors").add_attribute(cell, 'text', 1)
                 
         iconSizes = gtk.ListStore(str, str)
         iconSizes.append([_("Small"), "small-toolbar"])
@@ -215,28 +193,6 @@ class MintDesktop:
         self.init_combobox("/desktop/gnome/interface/toolbar_style", "combobox_toolicons")
 
         self.get_widget("main_window").show()
-        self.create_papers()
-
-    def create_papers(self):
-		''' Fill out the wallpaper section of mintDesktop '''
-		SIZE_X = 60 # how long it is
-		SIZE_Y = 120 # how wide it is
-		xdg_dirs = ['/usr/share/wallpapers/','/usr/share/backgrounds/']
-		images = gtk.ListStore(str,str,gtk.gdk.Pixbuf)
-		# recursively search xdg_dirs for images
-		for xdg_dir in xdg_dirs:
-			for root, dirs, files in os.walk(xdg_dir):
-				for f in files:
-					# construct full path name
-					full_path = os.path.join(root, f)
-					print full_path
-					try:
-						img = gtk.gdk.pixbuf_new_from_file_at_size(full_path, SIZE_X, SIZE_Y)
-						images.append([full_path, f, img])
-					except:
-						pass
-		self.get_widget("iconview_wallpaper").set_model(images)
-		self.get_widget("iconview_wallpaper").set_pixbuf_column(2)	
 			
     def about_callback(self, w):
         dlg = gtk.AboutDialog()
