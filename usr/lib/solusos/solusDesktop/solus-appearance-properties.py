@@ -110,6 +110,22 @@ class AppearanceWindow:
         self.init_switch(self.gnome_settings, "show-unicode-menu", "switch_unicode")
         self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
 
+	self.demo_create()
+
+
+   ''' Refresh the demo preview '''
+   def demo_create(self):
+	tbar = self.get_widget("toolbar_demo")
+	stocks = [ Gtk.STOCK_NEW, Gtk.STOCK_OPEN, Gtk.STOCK_SAVE, Gtk.STOCK_PRINT ]
+
+	for stock in stocks:
+		item = Gtk.ToolButton(stock)
+		tbar.add(item)
+
+	demo_area = self.get_widget("box_demo")
+	setts = demo_area.get_settings()
+	setts.set_string_property("gtk-theme-name", "Adwaita", "gtkrc:0")
+	tbar.show_all()
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_checkbox(self, settings, key, widget_name):
