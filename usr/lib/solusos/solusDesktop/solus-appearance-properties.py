@@ -114,6 +114,28 @@ class AppearanceWindow:
         self.init_switch(self.gnome_settings, "show-unicode-menu", "switch_unicode")
         self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
 
+	# Set up the model for icon sizes (small,large)
+        iconSizes = Gtk.ListStore(str, str)
+        iconSizes.append([_("Small"), "small-toolbar"])
+        iconSizes.append([_("Large"), "large-toolbar"])
+        self.get_widget("combobox_icon_size").set_model(iconSizes)
+	renderer_text = Gtk.CellRendererText()
+        self.get_widget("combobox_icon_size").pack_start(renderer_text, True)
+        self.get_widget("combobox_icon_size").add_attribute(renderer_text, "text", 0)
+
+        iconStyles = Gtk.ListStore(str, str)
+        iconStyles.append([_("Text below items"), "both"])
+        iconStyles.append([_("Text beside items"), "both-horiz"])
+        iconStyles.append([_("Icons only"), "icons"])
+        iconStyles.append([_("Text only"), "text"])
+        self.get_widget("combobox_tool_icons").set_model(iconStyles)
+	renderer_text = Gtk.CellRendererText()
+        self.get_widget("combobox_tool_icons").pack_start(renderer_text, True)
+        self.get_widget("combobox_tool_icons").add_attribute(renderer_text, "text", 0)
+
+	# Set up the model for toolbar icon style (both,both-horiz,icons,text)
+
+
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_checkbox(self, settings, key, widget_name):
 	widget = self.get_widget(widget_name)
@@ -145,6 +167,7 @@ class AppearanceWindow:
 
 	widget.connect("notify::active", go_change_switch)
 	settings.connect("changed::%s" % key, the_switch_cb)
+
 ########
 # MAIN #
 ########
