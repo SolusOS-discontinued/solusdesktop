@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import gi
-from gi.repository import Gtk, GConf, GdkPixbuf
+from gi.repository import Gtk, GConf, GdkPixbuf, Gio
 import gettext
 
 
@@ -95,6 +95,30 @@ class AppearanceWindow:
 
         self.get_widget("label_tool_icons").set_text(_("Buttons labels:"))
         self.get_widget("label_icon_size").set_text(_("Icon size:"))
+
+	# Desktop (nautilus) settings
+	self.desktop_settings = Gio.Settings.new("org.gnome.nautilus.desktop")
+        # Desktop page
+        self.init_checkbox(self.desktop_settings, "computer-icon-visible", "checkbox_computer")
+        self.init_checkbox(self.desktop_settings, "home-icon-visible", "checkbox_home")
+        self.init_checkbox(self.desktop_settings, "network-icon-visible", "checkbox_network")
+        self.init_checkbox(self.desktop_settings, "trash-icon-visible", "checkbox_trash")
+        self.init_checkbox(self.desktop_settings, "volumes-visible", "checkbox_volumes")
+
+   ''' Helper function, initialises a checkbox to a setting in gsettings '''
+   def init_checkbox(self, settings, key, widget_name):
+	widget = self.get_widget(widget_name)
+	value = settings.get_boolean(key)
+	widget.set_active(value)
+
+	def the_checkbox_cb(sets,key):
+		value_new = sets.get_boolean(key)
+		widget.set_active(value_new)
+
+	def go_change_it(wid):
+		settings.set_boolean(key, widget.get_active())
+	widget.connect("clicked", go_change_it)
+	settings.connect("changed::%s" % key, the_checkbox_cb)
 
 ########
 # MAIN #
