@@ -105,6 +105,14 @@ class AppearanceWindow:
         self.init_checkbox(self.desktop_settings, "trash-icon-visible", "checkbox_trash")
         self.init_checkbox(self.desktop_settings, "volumes-visible", "checkbox_volumes")
 
+	# Interface settings
+	self.gnome_settings = Gio.Settings.new("org.gnome.desktop.interface")
+        # interface page
+        self.init_checkbox(self.gnome_settings, "menus-have-icons", "checkbutton_menuicon")
+        self.init_checkbox(self.gnome_settings, "show-input-method-menu","checkbutton_im_menu")
+        self.init_checkbox(self.gnome_settings, "show-unicode-menu", "checkbutton_unicode")
+        self.init_checkbox(self.gnome_settings, "buttons-have-icons", "checkbutton_button_icons")
+
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_checkbox(self, settings, key, widget_name):
 	widget = self.get_widget(widget_name)
