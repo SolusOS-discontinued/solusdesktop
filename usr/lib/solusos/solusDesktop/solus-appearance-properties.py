@@ -2,6 +2,10 @@
 
 import gi
 from gi.repository import Gtk, GConf, GdkPixbuf
+import gettext
+
+
+gettext.install("solusdesktop", "/usr/share/solusos/locale")
 
 ''' Helper class to make side pages :) '''
 class SidePage:
@@ -61,6 +65,36 @@ class AppearanceWindow:
         self.get_widget("side_view").set_model(self.store)
         #self.get_widget("side_view").select_path(iter_first)
         self.get_widget("side_view").connect("selection_changed", self.side_view_nav )
+
+
+        # i18n
+        self.get_widget("label_desktop_icons").set_markup("<b>" + _("Desktop icons") + "</b>")
+        self.get_widget("label_performance").set_markup("<b>" + _("Performance") + "</b>")
+        self.get_widget("label_appearance").set_markup("<b>" + _("Appearance") + "</b>")
+        self.get_widget("label_icons").set_markup("<b>" + _("Icons") + "</b>")
+        self.get_widget("label_context_menus").set_markup("<b>" + _("Context menus") + "</b>")
+        self.get_widget("label_toolbars").set_markup("<b>" + _("Toolbars") + "</b>")
+        self.get_widget("caption_desktop_icons").set_markup("<small><i><span foreground=\"#555555\">" + _("Select the items you want to see on the desktop:") + "</span></i></small>")
+
+        self.get_widget("checkbox_computer").set_label(_("Computer"))
+        self.get_widget("checkbox_home").set_label(_("Home"))
+        self.get_widget("checkbox_network").set_label(_("Network"))
+        self.get_widget("checkbox_trash").set_label(_("Trash"))
+        self.get_widget("checkbox_volumes").set_label(_("Mounted Volumes"))
+
+        self.get_widget("checkbutton_resources").set_label(_("Don't show window content while dragging them"))
+        self.get_widget("checkbox_compositing").set_label(_("Use Gnome compositing"))
+        self.get_widget("checkbutton_titlebar").set_label(_("Use system font in titlebar"))
+
+        self.get_widget("label_layouts").set_text(_("Buttons layout:"))
+
+        self.get_widget("checkbutton_menuicon").set_label(_("Show icons on menus"))
+        self.get_widget("checkbutton_button_icons").set_label(_("Show icons on buttons"))
+        self.get_widget("checkbutton_im_menu").set_label(_("Show Input Methods menu in context menus"))
+        self.get_widget("checkbutton_unicode").set_label(_("Show Unicode Control Character menu in context menus"))
+
+        self.get_widget("label_tool_icons").set_text(_("Buttons labels:"))
+        self.get_widget("label_icon_size").set_text(_("Icon size:"))
 
 ########
 # MAIN #
