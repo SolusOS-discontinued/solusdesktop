@@ -5,11 +5,11 @@ try:
     import commands
     import sys
     import string
+    import gettext
+    import gconf
     import pygtk
     pygtk.require("2.0")
     import gtk
-    import gettext
-    import gconf
 except Exception, detail:
     print detail
     sys.exit(1)
