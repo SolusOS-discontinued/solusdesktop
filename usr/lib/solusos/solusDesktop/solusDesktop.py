@@ -14,10 +14,16 @@ except Exception, detail:
     print detail
     sys.exit(1)
 
+# i18n
+# TODO: Badly need to fix this - overuse of "The" etc.
+gettext.install("mintdesktop", "/usr/share/linuxmint/locale")
+
+
 # i18n for menu item
 menuName = _("Desktop Settings")
 menuGenericName = _("Desktop Configuration Tool")
 menuComment = _("Fine-tune desktop settings")
+
 
 class SidePage:
     def __init__(self, notebook_index, name, icon):
@@ -71,7 +77,7 @@ class MintDesktop:
         client.add_dir("/apps/nautilus/preferences", gconf.CLIENT_PRELOAD_NONE)
                
         side_gnome_desktop_options = SidePage(0, _("Desktop"), "user-desktop")
-        side_gnome_windows = SidePage(1, _("Windows"), "gnome-windows")
+        side_gnome_windows = SidePage(1, _("Windows"), "window-new")
         side_gnome_interface = SidePage(2, _("Interface"), "preferences-desktop")
         side_gnome_effects = SidePage(3, _("Effects"), "preferences-other")
         #side_terminal = SidePage(3, _("Terminal"), "terminal")
