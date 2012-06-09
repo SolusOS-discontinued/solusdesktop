@@ -89,8 +89,8 @@ class AppearanceWindow:
 
         self.get_widget("label_layouts").set_text(_("Buttons layout:"))
 
-        self.get_widget("checkbutton_menuicon").set_label(_("Show icons on menus"))
-        self.get_widget("checkbutton_button_icons").set_label(_("Show icons on buttons"))
+        self.get_widget("label_menuicon").set_label(_("Show icons on menus"))
+        self.get_widget("label_button_icons").set_label(_("Show icons on buttons"))
         self.get_widget("checkbutton_im_menu").set_label(_("Show Input Methods menu in context menus"))
         self.get_widget("checkbutton_unicode").set_label(_("Show Unicode Control Character menu in context menus"))
 
@@ -109,10 +109,10 @@ class AppearanceWindow:
 	# Interface settings
 	self.gnome_settings = Gio.Settings.new("org.gnome.desktop.interface")
         # interface page
-        self.init_checkbox(self.gnome_settings, "menus-have-icons", "checkbutton_menuicon")
+        self.init_switch(self.gnome_settings, "menus-have-icons", "switch_menuicon")
         self.init_checkbox(self.gnome_settings, "show-input-method-menu","checkbutton_im_menu")
         self.init_checkbox(self.gnome_settings, "show-unicode-menu", "checkbutton_unicode")
-        self.init_checkbox(self.gnome_settings, "buttons-have-icons", "checkbutton_button_icons")
+        self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_checkbox(self, settings, key, widget_name):
