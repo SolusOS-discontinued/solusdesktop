@@ -14,11 +14,6 @@ except Exception, detail:
     print detail
     sys.exit(1)
 
-
-# i18n
-# TODO: Badly need to fix this - overuse of "The" etc.
-gettext.install("mintdesktop", "/usr/share/linuxmint/locale")
-
 # i18n for menu item
 menuName = _("Desktop Settings")
 menuGenericName = _("Desktop Configuration Tool")
