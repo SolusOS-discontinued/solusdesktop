@@ -74,7 +74,6 @@ class AppearanceWindow:
         self.get_widget("label_appearance").set_markup("<b>" + _("Appearance") + "</b>")
         self.get_widget("label_icons").set_markup("<b>" + _("Icons") + "</b>")
         self.get_widget("label_context_menus").set_markup("<b>" + _("Context menus") + "</b>")
-        self.get_widget("label_toolbars").set_markup("<b>" + _("Toolbars") + "</b>")
         self.get_widget("caption_desktop_icons").set_markup("<small><i><span foreground=\"#555555\">" + _("Select the items you want to see on the desktop:") + "</span></i></small>")
 
         self.get_widget("label_computer").set_label(_("Computer"))
@@ -94,9 +93,6 @@ class AppearanceWindow:
         self.get_widget("label_im_menu").set_label(_("Show Input Methods menu"))
         self.get_widget("label_unicode").set_label(_("Show Unicode Control Character menu"))
 
-        self.get_widget("label_tool_icons").set_text(_("Buttons labels:"))
-        self.get_widget("label_icon_size").set_text(_("Icon size:"))
-
 	# Desktop (nautilus) settings
 	self.desktop_settings = Gio.Settings.new("org.gnome.nautilus.desktop")
         # Desktop page
@@ -113,27 +109,6 @@ class AppearanceWindow:
         self.init_switch(self.gnome_settings, "show-input-method-menu","switch_im_menu")
         self.init_switch(self.gnome_settings, "show-unicode-menu", "switch_unicode")
         self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
-
-	# Set up the model for icon sizes (small,large)
-        iconSizes = Gtk.ListStore(str, str)
-        iconSizes.append([_("Small"), "small-toolbar"])
-        iconSizes.append([_("Large"), "large-toolbar"])
-        self.get_widget("combobox_icon_size").set_model(iconSizes)
-	renderer_text = Gtk.CellRendererText()
-        self.get_widget("combobox_icon_size").pack_start(renderer_text, True)
-        self.get_widget("combobox_icon_size").add_attribute(renderer_text, "text", 0)
-
-        iconStyles = Gtk.ListStore(str, str)
-        iconStyles.append([_("Text below items"), "both"])
-        iconStyles.append([_("Text beside items"), "both-horiz"])
-        iconStyles.append([_("Icons only"), "icons"])
-        iconStyles.append([_("Text only"), "text"])
-        self.get_widget("combobox_tool_icons").set_model(iconStyles)
-	renderer_text = Gtk.CellRendererText()
-        self.get_widget("combobox_tool_icons").pack_start(renderer_text, True)
-        self.get_widget("combobox_tool_icons").add_attribute(renderer_text, "text", 0)
-
-	# Set up the model for toolbar icon style (both,both-horiz,icons,text)
 
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
@@ -167,6 +142,39 @@ class AppearanceWindow:
 
 	widget.connect("notify::active", go_change_switch)
 	settings.connect("changed::%s" % key, the_switch_cb)
+
+   ''' Helper function, initialises a combobox to a gsettings value and binds it '''
+   def init_combobox(self, settings, key, widget_name):
+	widget = self.get_widget(widget_name)
+	value = settings.get_string(key)
+
+	model = widget.get_model()
+
+	# somethin' changed!
+	def the_combo_cb(sets,key):
+		value_new = sets.get_string(key)
+		row=0
+		for i in model:
+			row+=1
+			if value == i[1]:
+				widget.set_active(row)
+
+	def go_change_combo(wid,data=None):
+		selected = widget.get_active_iter()
+		if selected is not None:
+			value = model[selected][1]
+			settings.set_string(key, value)
+
+	row = 0
+	# set the row to the currently used setting
+	for i in model:
+		print "key: %s, value=%s, found=%s" % (key,value,i[1])
+		row+=1
+		if value == i[1]:
+			widget.set_active(row)
+	
+	settings.connect("changed::%s" % key, the_combo_cb)
+	widget.connect("changed", go_change_combo)
 
 ########
 # MAIN #
