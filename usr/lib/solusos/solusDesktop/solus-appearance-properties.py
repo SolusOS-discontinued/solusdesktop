@@ -83,7 +83,7 @@ class AppearanceWindow:
         self.get_widget("label_trash").set_label(_("Trash"))
         self.get_widget("label_volumes").set_label(_("Mounted Volumes"))
 
-        self.get_widget("label_resources").set_label(_("Show Windows contents when dragging"))
+        self.get_widget("label_resources").set_label(_("Low resource usage (limited usability)"))
         self.get_widget("label_compositing").set_label(_("Desktop compositing"))
         self.get_widget("label_systemfont").set_label(_("System font on titlebar"))
 
@@ -263,6 +263,12 @@ class AppearanceWindow:
 	widget = self.get_widget(widget_name)
 	value = settings.get_bool(key)
 	widget.set_active(value)
+
+	def change_switch_gconf(wid,data=None):
+		settings.set_bool(key, widget.get_active())
+
+	widget.connect("notify::active", change_switch_gconf)
+
 
 	self.add_notify(key,widget)
 
