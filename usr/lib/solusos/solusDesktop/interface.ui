@@ -673,6 +673,8 @@
                                   <object class="GtkGrid" id="grid4">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
+                                    <property name="column_spacing">30</property>
+                                    <property name="column_homogeneous">True</property>
                                     <child>
                                       <object class="GtkLabel" id="label_themename">
                                         <property name="visible">True</property>
@@ -709,6 +711,7 @@
                                         <property name="can_focus">False</property>
                                         <property name="halign">end</property>
                                         <property name="valign">center</property>
+                                        <property name="hexpand">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
@@ -723,6 +726,7 @@
                                         <property name="can_focus">False</property>
                                         <property name="halign">end</property>
                                         <property name="valign">center</property>
+                                        <property name="hexpand">True</property>
                                       </object>
                                       <packing>
                                         <property name="left_attach">1</property>
