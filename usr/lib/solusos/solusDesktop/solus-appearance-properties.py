@@ -111,7 +111,10 @@ class AppearanceWindow:
         self.init_switch(self.gnome_settings, "show-unicode-menu", "switch_unicode")
         self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
 
+	# Theme page
 	self.build_themes_list()
+	self.init_combobox(self.gnome_settings, "gtk-theme", "combobox_widget_theme")
+
 	self.build_preview()
 
    ''' Initialise the preview area '''
@@ -141,7 +144,6 @@ class AppearanceWindow:
 	box.connect("changed", change_theme_cb)
 
 
-
    ''' Populate the combobox with theme names '''
    def build_themes_list(self):
 	homedir = os.getenv('HOME')
@@ -165,6 +167,7 @@ class AppearanceWindow:
 	renderer_text = Gtk.CellRendererText()
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
+	box.set_active(3)
 
 
 
@@ -201,7 +204,7 @@ class AppearanceWindow:
 	settings.connect("changed::%s" % key, the_switch_cb)
 
    ''' Helper function, initialises a combobox to a gsettings value and binds it '''
-   def init_combobox(self, settings, key, widget_name):
+   def init_combobox(self, settings, key, widget_name, abnormal=False):
 	widget = self.get_widget(widget_name)
 	value = settings.get_string(key)
 
@@ -213,8 +216,13 @@ class AppearanceWindow:
 		row=0
 		for i in model:
 			row+=1
-			if value == i[1]:
+			testee = i[0]
+			if abnormal:
+				testee = i[1]
+
+			if value == testee:
 				widget.set_active(row)
+				break
 
 	def go_change_combo(wid,data=None):
 		selected = widget.get_active_iter()
@@ -225,13 +233,16 @@ class AppearanceWindow:
 	row = 0
 	# set the row to the currently used setting
 	for i in model:
-		print "key: %s, value=%s, found=%s" % (key,value,i[1])
-		row+=1
-		if value == i[1]:
+		testee = i[0]
+		if abnormal:
+			testee = i[1]
+		if value == testee:
 			widget.set_active(row)
-	
+			break
+		row+=1
 	settings.connect("changed::%s" % key, the_combo_cb)
-	widget.connect("changed", go_change_combo)
+	if abnormal:
+		widget.connect("changed", go_change_combo)
 
 ########
 # MAIN #
