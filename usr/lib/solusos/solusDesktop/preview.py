@@ -24,9 +24,16 @@ class ThemePreview(dbus.service.Object):
 	dbus.service.Object.__init__(self, bus_name, '/com/solusos/themepreview')
 
    def create_ui(self, some_event):
-	print "Yo. I iz embedded"
+
+	# create the toolbar stuffs
 	iface = self.get_widget("box1")
 	iface.unparent()
+
+	toolbar = self.get_widget("toolbar1")
+	stocks = [ Gtk.STOCK_NEW, Gtk.STOCK_OPEN, Gtk.STOCK_QUIT, Gtk.STOCK_PRINT, Gtk.STOCK_UNDO, Gtk.STOCK_REDO ]
+	for stock in stocks:
+		item = Gtk.ToolButton(stock)
+		toolbar.add(item)
 
 	self.plug.add(iface)
 	self.plug.show_all()
