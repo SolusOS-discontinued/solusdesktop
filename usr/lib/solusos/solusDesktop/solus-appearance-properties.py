@@ -3,7 +3,7 @@
 import gi
 from gi.repository import Gtk, GConf, GdkPixbuf, Gio
 import gettext
-
+import dbus
 
 gettext.install("solusdesktop", "/usr/share/solusos/locale")
 
@@ -110,22 +110,25 @@ class AppearanceWindow:
         self.init_switch(self.gnome_settings, "show-unicode-menu", "switch_unicode")
         self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
 
-	self.demo_create()
+	self.build_preview()
 
+   ''' Initialise the preview area '''
+   def build_preview(self):
+	bus = dbus.SessionBus()
+	preview_service = bus.get_object("com.solusos.themepreview", "/com/solusos/themepreview")
+	get_plug = preview_service.get_dbus_method("get_plug_id", "com.solusos.themepreview")
+	plug_id = get_plug()
 
-   ''' Refresh the demo preview '''
-   def demo_create(self):
-	tbar = self.get_widget("toolbar_demo")
-	stocks = [ Gtk.STOCK_NEW, Gtk.STOCK_OPEN, Gtk.STOCK_SAVE, Gtk.STOCK_PRINT ]
+	# we can now embed the preview widget as we got its plug id :)
+	socket = Gtk.Socket()
+	self.get_widget("box_preview").add(socket)
+	socket.add_id(plug_id)
+	self.get_widget("box_preview").show_all()
 
-	for stock in stocks:
-		item = Gtk.ToolButton(stock)
-		tbar.add(item)
+	# Test! Set a different theme :P
+	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.themepreview")
+	theme_switch("Adwaita")
 
-	demo_area = self.get_widget("box_demo")
-	setts = demo_area.get_settings()
-	setts.set_string_property("gtk-theme-name", "Adwaita", "gtkrc:0")
-	tbar.show_all()
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_checkbox(self, settings, key, widget_name):
