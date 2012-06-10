@@ -30,6 +30,10 @@ class AppearanceWindow:
 	self.get_widget("notebook1").set_current_page(selected)
 
    def __init__(self):
+
+	# Are we changing the gconf key??
+	self.emitting_change = False
+
 	self.builder = Gtk.Builder()
 	self.builder.add_from_file('/usr/lib/solusos/solusDesktop/interface.ui')
 	# Add a hook for getting objects out of the GtkBuilder
@@ -146,6 +150,31 @@ class AppearanceWindow:
 	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
 	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
 	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
+
+	# set up hinting/antaliasing boxes
+	aliasing = Gtk.ListStore(str, str)
+	aliasing.append([_("No anti-aliasing"), "none"])
+	aliasing.append([_("Greyscale"), "grayscale"])
+	aliasing.append([_("Subpixel (LCDs)"), "rgba"])
+	self.get_widget("combobox_aliasing").set_model(aliasing)
+	box = self.get_widget("combobox_aliasing")
+	renderer_text = Gtk.CellRendererText()
+	box.pack_start(renderer_text, True)
+	box.add_attribute(renderer_text, "text", 0)
+	self.font_settings = Gio.Settings.new("org.gnome.settings-daemon.plugins.xsettings")
+	self.init_combobox(self.font_settings, "antialiasing", "combobox_aliasing", abnormal=True)
+
+	hinting = Gtk.ListStore(str, str)
+	hinting.append([_("None"), "none"])
+	hinting.append([_("Slight"), "slight"])
+	hinting.append([_("Medium"), "medium"])
+	hinting.append([_("Full"), "full"])
+	self.get_widget("combobox_hinting").set_model(hinting)
+	box = self.get_widget("combobox_hinting")
+	renderer_text = Gtk.CellRendererText()
+	box.pack_start(renderer_text, True)
+	box.add_attribute(renderer_text, "text", 0)
+	self.init_combobox(self.font_settings, "hinting", "combobox_hinting", abnormal=True)
 
 	# hook up the quit button
 	self.get_widget("button_cancel").connect("clicked", Gtk.main_quit)
@@ -271,10 +300,14 @@ class AppearanceWindow:
 	widget.set_active(value)
 
 	def the_checkbox_cb(sets,key):
+		if self.emitting_change:
+			self.emitting_change = False
+			return
 		value_new = sets.get_boolean(key)
 		widget.set_active(value_new)
 
 	def go_change_it(wid):
+		self.emitting_change = True
 		settings.set_boolean(key, widget.get_active())
 	widget.connect("clicked", go_change_it)
 	settings.connect("changed::%s" % key, the_checkbox_cb)
@@ -287,10 +320,14 @@ class AppearanceWindow:
 	widget.set_font_name(value)
 
 	def the_fontbox_callback(sets,key):
+		if self.emitting_change:
+			self.emitting_change = False
+			return
 		value_new = sets.get_string(key)
 		widget.set_font_name(value_new)
 
 	def go_change_font(wid):
+		self.emitting_change = True
 		settings.set_string(key, widget.get_font_name())
 
 	widget.connect("font-set", go_change_font)
@@ -304,6 +341,7 @@ class AppearanceWindow:
 	widget.set_active(value)
 
 	def change_switch_gconf(wid,data=None):
+		self.emitting_change = True
 		settings.set_bool(key, widget.get_active())
 
 	widget.connect("notify::active", change_switch_gconf)
@@ -329,6 +367,9 @@ class AppearanceWindow:
    ''' Callback for gconf. update our internal values '''
    def key_changed_callback (self, client, cnxn_id, entry, widget):
         # deal with all boolean (checkboxes)
+	if self.emitting_change:
+		self.emitting_change = False
+		return
 	if(entry.value.type == GConf.ValueType.BOOL):
 		value = entry.value.get_bool()
                 if(widget):
@@ -353,11 +394,14 @@ class AppearanceWindow:
 	widget.set_active(value)
 
 	def the_switch_cb(sets,key):
+		if self.emitting_change:
+			self.emitting_change = False
+			return
 		value_new = sets.get_boolean(key)
 		widget.set_active(value_new)
 
 	def go_change_switch(wid,data=None):
-		print "Switched!"
+		self.emitting_change = True
 		settings.set_boolean(key, widget.get_active())
 
 	widget.connect("notify::active", go_change_switch)
@@ -372,6 +416,9 @@ class AppearanceWindow:
 
 	# somethin' changed!
 	def the_combo_cb(sets,key):
+		if self.emitting_change:
+			self.emitting_change = False
+			return
 		value_new = sets.get_string(key)
 		row=0
 		for i in model:
@@ -387,6 +434,7 @@ class AppearanceWindow:
 	def go_change_combo(wid,data=None):
 		selected = widget.get_active_iter()
 		if selected is not None:
+			self.emitting_change = True
 			value = model[selected][1]
 			settings.set_string(key, value)
 
@@ -415,6 +463,9 @@ class AppearanceWindow:
 	def the_combo_cb(sets,key):
 		value_new = sets.get_string(key)
 		row=0
+		if self.emitting_change:
+			self.emitting_change = False
+			return
 		for i in model:
 			row+=1
 			testee = i[0]
@@ -428,6 +479,7 @@ class AppearanceWindow:
 	def go_change_combo(wid,data=None):
 		selected = widget.get_active_iter()
 		if selected is not None:
+			self.emitting_change = True
 			value = model[selected][1]
 			settings.set_string(key, value)
 
