@@ -120,6 +120,15 @@ class AppearanceWindow:
 	self.init_combobox(self.gnome_settings, "icon-theme", "combobox_icon_theme")
 	self.build_preview()
 
+	# metacity stuff
+	self.metacity_settings = GConf.Client.get_default()
+	## Tell GConf we're interested in these keys
+	self.metacity_settings.add_dir("/apps/metacity/general", GConf.ClientPreloadType.PRELOAD_NONE)
+
+	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/reduced_resources", "switch_resources")
+	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/compositing_manager", "switch_composite")
+	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/titlebar_uses_system_font", "switch_wm_font")
+
    ''' Initialise the preview area '''
    def build_preview(self):
 	bus = dbus.SessionBus()
@@ -248,6 +257,49 @@ class AppearanceWindow:
 		settings.set_boolean(key, widget.get_active())
 	widget.connect("clicked", go_change_it)
 	settings.connect("changed::%s" % key, the_checkbox_cb)
+
+   ''' Helper function, init a checkboxfrom GConf '''
+   def init_switch_gconf(self, settings, key, widget_name):
+	widget = self.get_widget(widget_name)
+	value = settings.get_bool(key)
+	widget.set_active(value)
+
+	self.add_notify(key,widget)
+
+   ''' Notify helper '''
+   def add_notify(self, key, widget):
+	notify_id = self.metacity_settings.notify_add(key, self.key_changed_callback, widget)
+	widget.set_data('notify_id', notify_id)
+	widget.set_data('client', self.metacity_settings)
+	widget.connect("destroy", self.destroy_callback)
+
+   ''' destroy the associated notifications '''
+   def destroy_callback (self, widget):
+	client = widget.get_data ('client')
+	notify_id = widget.get_data ('notify_id')
+
+	if notify_id:
+		client.notify_remove (notify_id)
+
+   ''' Callback for gconf. update our internal values '''
+   def key_changed_callback (self, client, cnxn_id, entry, widget):
+        # deal with all boolean (checkboxes)
+	if(entry.value.type == GConf.ValueType.BOOL):
+		value = entry.value.get_bool()
+                if(widget):
+                    widget.set_active(value)
+	elif(entry.value.type == GConf.ValueType.STRING):
+                if(not widget and not value):
+                    return
+		# the string in question :)
+		value = entry.value.get_string()
+		index=0
+		for row in widget.get_model():
+			if(value == row[1]):
+				widget.set_active(index)
+				break
+			index = index +1
+
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_switch(self, settings, key, widget_name):
