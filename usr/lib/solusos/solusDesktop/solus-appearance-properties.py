@@ -4,6 +4,8 @@ import gi
 from gi.repository import Gtk, GConf, GdkPixbuf, Gio
 import gettext
 import dbus
+import os
+import os.path
 
 gettext.install("solusdesktop", "/usr/share/solusos/locale")
 
@@ -109,6 +111,7 @@ class AppearanceWindow:
         self.init_switch(self.gnome_settings, "show-unicode-menu", "switch_unicode")
         self.init_switch(self.gnome_settings, "buttons-have-icons", "switch_button_icons")
 
+	self.build_themes_list()
 	self.build_preview()
 
    ''' Initialise the preview area '''
@@ -127,6 +130,42 @@ class AppearanceWindow:
 	# Test! Set a different theme :P
 	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.themepreview")
 	theme_switch("Adwaita")
+
+	def change_theme_cb(wid,data=None):
+		active = wid.get_active_iter()
+		item = wid.get_model()[active][0]
+		theme_switch(item)
+
+	# hook the combo-box up to change themes
+	box = self.get_widget("combobox_widget_theme")
+	box.connect("changed", change_theme_cb)
+
+
+
+   ''' Populate the combobox with theme names '''
+   def build_themes_list(self):
+	homedir = os.getenv('HOME')
+	xdg_dirs = [ '/usr/share/themes', '%s/.themes/' % homedir ]
+
+	themes_model = Gtk.ListStore(str)
+
+	for xdg_dir in xdg_dirs:
+		if not os.path.exists(xdg_dir):
+			continue
+		# loop through the directory finding gtk3 themes
+		for d in os.listdir(xdg_dir):
+			name = d
+			path = os.path.join(xdg_dir, d)
+			gtk3hopeful = os.path.join(path, 'gtk-3.0')
+			if os.path.exists(gtk3hopeful):
+				themes_model.append([name])
+	# now we'll put them in the combobox. so you can select em :)
+	box = self.get_widget("combobox_widget_theme")
+	box.set_model(themes_model)
+	renderer_text = Gtk.CellRendererText()
+	box.pack_start(renderer_text, True)
+	box.add_attribute(renderer_text, "text", 0)
+
 
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
