@@ -145,6 +145,9 @@ class AppearanceWindow:
 	box.add_attribute(renderer_text, "text", 0)
 	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/button_layout", "combobox_wm_layout", abnormal=True)
 
+	# themes. init.
+	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/theme", "combobox_wm_themes")
+
 	# Init the fontboxes.
 	self.init_fontbox(self.gnome_settings, "font-name", "fontbutton_application")
 	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
@@ -245,18 +248,48 @@ class AppearanceWindow:
 
 	# ThemePreview methods
 	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.metacitythemepreview")
-	theme_switch('Adwaita')
+	# set it to the current theme
+	sztheme = self.metacity_settings.get_string("/apps/metacity/general/theme")
+	theme_switch(sztheme)
 
-   ''' Change the gtk theme globally (not just inside the theme preview '''
+	def change_metacity_theme_cb(wid,data=None):
+		active = wid.get_active_iter()
+		item = wid.get_model()[active][0]
+		# do we enable the apply button?
+		old_value = self.metacity_settings.get_string("/apps/metacity/general/theme")
+		if old_value != item:
+			self.get_widget("button_apply_metacity").set_sensitive(True)
+		else:
+			self.get_widget("button_apply_metacity").set_sensitive(False)
+		theme_switch(item)
+
+	box = self.get_widget("combobox_wm_themes")
+	self.get_widget("button_apply_metacity").connect("clicked", self.metacity_theme_switch_cb)
+
+	box.connect("changed", change_metacity_theme_cb)
+
+   ''' Change the gtk theme globally (not just inside the theme preview( '''
    def theme_switch_cb(self, wid):
+	self.emitting_change = True
 	box = self.get_widget("combobox_widget_theme")
 	active = box.get_active_iter()
 	item = box.get_model()[active][0]
 	self.gnome_settings.set_string("gtk-theme", item)
 	self.get_widget("button_widget_apply").set_sensitive(False)
 
-   ''' Change the gtk theme globally (not just inside the theme preview '''
+
+   ''' Change metacity theme globally (not just inside the theme preview) ''' 
+   def metacity_theme_switch_cb(self, wid):
+	self.emitting_change = True
+	box = self.get_widget("combobox_wm_themes")
+	active = box.get_active_iter()
+	item = box.get_model()[active][0]
+	self.metacity_settings.set_string("/apps/metacity/general/theme", item)
+	self.get_widget("button_apply_metacity").set_sensitive(False)
+
+   ''' Change the gtk theme globally (not just inside the theme preview) '''
    def icon_switch_cb(self, wid):
+	self.emitting_change = True
 	box = self.get_widget("combobox_icon_theme")
 	active = box.get_active_iter()
 	item = box.get_model()[active][0]
@@ -269,7 +302,7 @@ class AppearanceWindow:
 	xdg_dirs = [ '/usr/share/themes', '%s/.themes/' % homedir ]
 
 	themes_model = Gtk.ListStore(str)
-
+	metacity_model = Gtk.ListStore(str)
 	for xdg_dir in xdg_dirs:
 		if not os.path.exists(xdg_dir):
 			continue
@@ -278,14 +311,25 @@ class AppearanceWindow:
 			name = d
 			path = os.path.join(xdg_dir, d)
 			gtk3hopeful = os.path.join(path, 'gtk-3.0')
+			metacity_hopeful = os.path.join(path, 'metacity-1')
 			if os.path.exists(gtk3hopeful):
 				themes_model.append([name])
+			if os.path.exists(metacity_hopeful):
+				metacity_model.append([name])
+
 	# now we'll put them in the combobox. so you can select em :)
 	box = self.get_widget("combobox_widget_theme")
 	box.set_model(themes_model)
 	renderer_text = Gtk.CellRendererText()
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
+
+	# now set up the metacity themes
+	box = self.get_widget("combobox_wm_themes")
+	box.set_model(metacity_model)
+	renderer_text = Gtk.CellRendererText()
+	box.pack_start(renderer_text, True)
+	box.add_attribute(renderer_text, "text",0)
 
    ''' Populate the combobox with icon theme names '''
    def build_icons_list(self):
