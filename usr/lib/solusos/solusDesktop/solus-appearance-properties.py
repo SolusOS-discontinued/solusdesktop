@@ -139,21 +139,51 @@ class AppearanceWindow:
 	def change_theme_cb(wid,data=None):
 		active = wid.get_active_iter()
 		item = wid.get_model()[active][0]
+		# do we enable the apply button?
+		old_value = self.gnome_settings.get_string("gtk-theme")
+		if old_value != item:
+			self.get_widget("button_widget_apply").set_sensitive(True)
+		else:
+			self.get_widget("button_widget_apply").set_sensitive(False)
 		theme_switch(item)
 
 	def change_icons_cb(wid,data=None):
 		active = wid.get_active_iter()
 		item = wid.get_model()[active][0]
+		# do we enable the apply button?
+		old_value = self.gnome_settings.get_string("icon-theme")
+		if old_value != item:
+			self.get_widget("button_icon_apply").set_sensitive(True)
+		else:
+			self.get_widget("button_icon_apply").set_sensitive(False)
 		icon_switch(item)
 
 	# hook the combo-box up to change themes
 	box = self.get_widget("combobox_widget_theme")
 	box.connect("changed", change_theme_cb)
-
 	box2 = self.get_widget("combobox_icon_theme")
 	box2.connect("changed", change_icons_cb)
 
+	# hook up the apply buttons
+	self.get_widget("button_widget_apply").connect("clicked", self.theme_switch_cb)
+	self.get_widget("button_icon_apply").connect("clicked", self.icon_switch_cb)
 
+
+   ''' Change the gtk theme globally (not just inside the theme preview '''
+   def theme_switch_cb(self, wid):
+	box = self.get_widget("combobox_widget_theme")
+	active = box.get_active_iter()
+	item = box.get_model()[active][0]
+	self.gnome_settings.set_string("gtk-theme", item)
+	self.get_widget("button_widget_apply").set_sensitive(False)
+
+   ''' Change the gtk theme globally (not just inside the theme preview '''
+   def icon_switch_cb(self, wid):
+	box = self.get_widget("combobox_icon_theme")
+	active = box.get_active_iter()
+	item = box.get_model()[active][0]
+	self.gnome_settings.set_string("icon-theme", item)
+	self.get_widget("button_icon_apply").set_sensitive(False)
 
    ''' Populate the combobox with theme names '''
    def build_themes_list(self):
