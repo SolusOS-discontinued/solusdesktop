@@ -141,6 +141,12 @@ class AppearanceWindow:
 	box.add_attribute(renderer_text, "text", 0)
 	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/button_layout", "combobox_wm_layout", abnormal=True)
 
+	# Init the fontboxes.
+	self.init_fontbox(self.gnome_settings, "font-name", "fontbutton_application")
+	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
+	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
+	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
+
    ''' Initialise the preview area '''
    def build_preview(self):
 	bus = dbus.SessionBus()
@@ -269,6 +275,18 @@ class AppearanceWindow:
 		settings.set_boolean(key, widget.get_active())
 	widget.connect("clicked", go_change_it)
 	settings.connect("changed::%s" % key, the_checkbox_cb)
+
+   ''' Helper function, init a FontButton with a setting in GSettings '''
+   def init_fontbox(self, settings, key, widget_name):
+	widget = self.get_widget(widget_name)
+	value = settings.get_string(key)
+	widget.set_font_name(value)
+
+	def the_fontbox_callback(sets,key):
+		value_new = sets.get_string(key)
+		widget.set_font_name(value_new)
+
+	settings.connect("changed::%s" % key, the_fontbox_callback)
 
    ''' Helper function, init a checkboxfrom GConf '''
    def init_switch_gconf(self, settings, key, widget_name):
