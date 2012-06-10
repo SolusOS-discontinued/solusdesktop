@@ -139,7 +139,7 @@ class AppearanceWindow:
 	renderer_text = Gtk.CellRendererText()
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
-	#self.init_combobox("/apps/metacity/general/button_layout", "combo_wmlayout")
+	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/button_layout", "combobox_wm_layout", abnormal=True)
 
    ''' Initialise the preview area '''
    def build_preview(self):
@@ -374,6 +374,47 @@ class AppearanceWindow:
 			break
 		row+=1
 	settings.connect("changed::%s" % key, the_combo_cb)
+	if abnormal:
+		widget.connect("changed", go_change_combo)
+
+   ''' Helper function, initialises a combobox to a gconf value and binds it '''
+   def init_gconf_combobox(self, settings, key, widget_name, abnormal=False):
+	widget = self.get_widget(widget_name)
+	value = settings.get_string(key)
+
+	model = widget.get_model()
+
+	# somethin' changed!
+	def the_combo_cb(sets,key):
+		value_new = sets.get_string(key)
+		row=0
+		for i in model:
+			row+=1
+			testee = i[0]
+			if abnormal:
+				testee = i[1]
+
+			if value == testee:
+				widget.set_active(row)
+				break
+
+	def go_change_combo(wid,data=None):
+		selected = widget.get_active_iter()
+		if selected is not None:
+			value = model[selected][1]
+			settings.set_string(key, value)
+
+	row = 0
+	# set the row to the currently used setting
+	for i in model:
+		testee = i[0]
+		if abnormal:
+			testee = i[1]
+		if value == testee:
+			widget.set_active(row)
+			break
+		row+=1
+	self.add_notify(key,widget)
 	if abnormal:
 		widget.connect("changed", go_change_combo)
 
