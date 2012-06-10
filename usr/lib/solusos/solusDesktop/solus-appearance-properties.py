@@ -150,6 +150,7 @@ class AppearanceWindow:
 	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
 	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
 	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
+	self.init_fontbox(self.metacity_settings, "/apps/metacity/general/titlebar_font", "fontbutton_title", abnormal=True)
 
 	# set up hinting/antaliasing boxes
 	aliasing = Gtk.ListStore(str, str)
@@ -313,7 +314,7 @@ class AppearanceWindow:
 	settings.connect("changed::%s" % key, the_checkbox_cb)
 
    ''' Helper function, init a FontButton with a setting in GSettings '''
-   def init_fontbox(self, settings, key, widget_name):
+   def init_fontbox(self, settings, key, widget_name,abnormal=False):
 	widget = self.get_widget(widget_name)
 	widget.set_use_font(True)
 	value = settings.get_string(key)
@@ -332,7 +333,11 @@ class AppearanceWindow:
 
 	widget.connect("font-set", go_change_font)
 
-	settings.connect("changed::%s" % key, the_fontbox_callback)
+	if abnormal:
+		# use gconf.
+		self.add_notify(key,widget)
+	else:
+		settings.connect("changed::%s" % key, the_fontbox_callback)
 
    ''' Helper function, init a checkboxfrom GConf '''
    def init_switch_gconf(self, settings, key, widget_name):
@@ -378,6 +383,10 @@ class AppearanceWindow:
                 if(not widget and not value):
                     return
 		# the string in question :)
+		# check for fontbuttons:P
+		if "FontButton" in str(widget):
+			widget.set_font_name(entry.value.get_string())
+			return
 		value = entry.value.get_string()
 		index=0
 		for row in widget.get_model():

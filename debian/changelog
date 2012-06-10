@@ -1,3 +1,10 @@
+solusdesktop (3.4) two; urgency=low
+
+  * Working in Gnome 3.4
+  * 
+
+ -- Ikey Doherty <ikey@solusos.com>  Sun, 10 Jun 2012 15:30:39 +0000
+
 solusdesktop (3.2.4) debian; urgency=low
 
   * Rebrand for SolusOS
