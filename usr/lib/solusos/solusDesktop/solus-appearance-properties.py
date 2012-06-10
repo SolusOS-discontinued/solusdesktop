@@ -83,11 +83,11 @@ class AppearanceWindow:
         self.get_widget("label_trash").set_label(_("Trash"))
         self.get_widget("label_volumes").set_label(_("Mounted Volumes"))
 
-        self.get_widget("checkbutton_resources").set_label(_("Don't show window content while dragging them"))
-        self.get_widget("checkbox_compositing").set_label(_("Use Gnome compositing"))
-        self.get_widget("checkbutton_titlebar").set_label(_("Use system font in titlebar"))
+        self.get_widget("label_resources").set_label(_("Show Windows contents when dragging"))
+        self.get_widget("label_compositing").set_label(_("Desktop compositing"))
+        self.get_widget("label_systemfont").set_label(_("System font on titlebar"))
 
-        self.get_widget("label_layouts").set_text(_("Buttons layout:"))
+        self.get_widget("label_wm_layout").set_label(_("Buttons layout:"))
 
         self.get_widget("label_menuicon").set_label(_("Show icons on menus"))
         self.get_widget("label_button_icons").set_label(_("Show icons on buttons"))
