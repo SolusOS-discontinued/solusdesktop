@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import gi
 
 from gi.repository import Gtk
@@ -10,7 +11,7 @@ class ThemePreview(dbus.service.Object):
    def __init__(self):
 	bus_name = dbus.service.BusName('com.solusos.themepreview', bus=dbus.SessionBus())
 	self.builder = Gtk.Builder()
-	self.builder.add_from_file("./theme_preview.ui")
+	self.builder.add_from_file('/usr/lib/solusos/solusDesktop/theme_preview.ui')
 	self.get_widget = self.builder.get_object
 
 	# make plug, reparent

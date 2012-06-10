@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=com.solusos.themepreview
 Exec=/usr/lib/solusos/solusDesktop/preview.py
+

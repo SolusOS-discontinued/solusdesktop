@@ -29,8 +29,7 @@ class AppearanceWindow:
 
    def __init__(self):
 	self.builder = Gtk.Builder()
-	#self.builder.add_from_file('/usr/lib/solusos/solusDesktop/solusDesktop.ui')
-	self.builder.add_from_file('./interface.ui')
+	self.builder.add_from_file('/usr/lib/solusos/solusDesktop/interface.ui')
 	# Add a hook for getting objects out of the GtkBuilder
 	self.get_widget = self.builder.get_object
 
