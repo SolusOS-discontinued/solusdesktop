@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import gi
-
 import pygtk
 import gtk
 import dbus
@@ -15,7 +13,7 @@ class MetacityThemePreview(dbus.service.Object):
 	bus_name = dbus.service.BusName('com.solusos.metacitythemepreview', bus=dbus.SessionBus())
 
 	# make plug, reparent
-	self.plug = Gtk.Plug()
+	self.plug = gtk.Plug(0L)
 	self.plug_id = self.plug.get_id()
 
 	self.plug.connect("destroy", gtk.main_quit)
@@ -28,7 +26,8 @@ class MetacityThemePreview(dbus.service.Object):
 
    def create_ui(self, some_event):
 	self.preview = metacity.Preview()
-	
+	self.plug.add(self.preview)
+	self.plug.show_all()	
 	return
 
    @dbus.service.method(dbus_interface = "com.solusos.metacitythemepreview", in_signature = None, out_signature = 'i')
@@ -48,6 +47,6 @@ class MetacityThemePreview(dbus.service.Object):
 
 if __name__ == "__main__":
 	DBusGMainLoop(set_as_default=True)
-	myservice = ThemePreview()
-	Gtk.main()
+	myservice = MetacityThemePreview()
+	gtk.main()
 

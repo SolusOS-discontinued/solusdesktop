@@ -180,6 +180,8 @@ class AppearanceWindow:
 	# hook up the quit button
 	self.get_widget("button_cancel").connect("clicked", Gtk.main_quit)
 
+	self.build_metacity_preview()
+
    ''' Initialise the preview area '''
    def build_preview(self):
 	bus = dbus.SessionBus()
@@ -228,6 +230,22 @@ class AppearanceWindow:
 	self.get_widget("button_widget_apply").connect("clicked", self.theme_switch_cb)
 	self.get_widget("button_icon_apply").connect("clicked", self.icon_switch_cb)
 
+   ''' Set up the metacity previewer '''
+   def build_metacity_preview(self):
+	bus = dbus.SessionBus()
+	preview_service = bus.get_object("com.solusos.metacitythemepreview", "/com/solusos/metacitythemepreview")
+	get_plug = preview_service.get_dbus_method("get_plug_id", "com.solusos.metacitythemepreview")
+	plug_id = get_plug()
+
+	# we can now embed the preview widget as we got its plug id :)
+	socket = Gtk.Socket()
+	self.get_widget("box_metacity_preview").add(socket)
+	socket.add_id(plug_id)
+	self.get_widget("box_metacity_preview").show_all()
+
+	# ThemePreview methods
+	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.metacitythemepreview")
+	theme_switch('Adwaita')
 
    ''' Change the gtk theme globally (not just inside the theme preview '''
    def theme_switch_cb(self, wid):
