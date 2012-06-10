@@ -129,6 +129,18 @@ class AppearanceWindow:
 	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/compositing_manager", "switch_composite")
 	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/titlebar_uses_system_font", "switch_wm_font")
 
+	# combobox fun for metacity theme layouts
+	# Metacity button layouts..
+	layouts = Gtk.ListStore(str, str)
+	layouts.append([_("Traditional style (Right)"), "menu:minimize,maximize,close"])
+	layouts.append([_("Mac style (Left)"), "close,minimize,maximize:"])
+	self.get_widget("combobox_wm_layout").set_model(layouts)
+	box = self.get_widget("combobox_wm_layout")
+	renderer_text = Gtk.CellRendererText()
+	box.pack_start(renderer_text, True)
+	box.add_attribute(renderer_text, "text", 0)
+	#self.init_combobox("/apps/metacity/general/button_layout", "combo_wmlayout")
+
    ''' Initialise the preview area '''
    def build_preview(self):
 	bus = dbus.SessionBus()
