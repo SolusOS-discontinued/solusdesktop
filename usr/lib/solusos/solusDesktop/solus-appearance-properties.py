@@ -147,6 +147,9 @@ class AppearanceWindow:
 	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
 	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
 
+	# hook up the quit button
+	self.get_widget("button_cancel").connect("clicked", Gtk.main_quit)
+
    ''' Initialise the preview area '''
    def build_preview(self):
 	bus = dbus.SessionBus()
@@ -279,12 +282,18 @@ class AppearanceWindow:
    ''' Helper function, init a FontButton with a setting in GSettings '''
    def init_fontbox(self, settings, key, widget_name):
 	widget = self.get_widget(widget_name)
+	widget.set_use_font(True)
 	value = settings.get_string(key)
 	widget.set_font_name(value)
 
 	def the_fontbox_callback(sets,key):
 		value_new = sets.get_string(key)
 		widget.set_font_name(value_new)
+
+	def go_change_font(wid):
+		settings.set_string(key, widget.get_font_name())
+
+	widget.connect("font-set", go_change_font)
 
 	settings.connect("changed::%s" % key, the_fontbox_callback)
 
