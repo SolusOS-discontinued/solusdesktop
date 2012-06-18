@@ -1,3 +1,21 @@
+solusdesktop (3.4.3.2) UNRELEASED; urgency=low
+
+  * UI improvements, about box
+
+ -- Ikey Doherty <ikey@solusos.com>  Fri, 15 Jun 2012 19:16:22 +0000
+
+solusdesktop (3.4.3) two; urgency=low
+
+  * Added cursor switching
+
+ -- Ikey Doherty <ikey@solusos.com>  Fri, 15 Jun 2012 18:52:17 +0000
+
+solusdesktop (3.4.2) two; urgency=low
+
+  * Use GSettings for Metacity (version update)
+
+ -- Ikey Doherty <ikey@solusos.com>  Tue, 12 Jun 2012 00:12:28 +0000
+
 solusdesktop (3.4.1) two; urgency=low
 
   * Live metacity theme previews and switching

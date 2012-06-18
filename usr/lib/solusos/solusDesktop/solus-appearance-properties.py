@@ -124,14 +124,18 @@ class AppearanceWindow:
 	self.init_combobox(self.gnome_settings, "icon-theme", "combobox_icon_theme")
 	self.build_preview()
 
-	# metacity stuff
-	self.metacity_settings = GConf.Client.get_default()
-	## Tell GConf we're interested in these keys
-	self.metacity_settings.add_dir("/apps/metacity/general", GConf.ClientPreloadType.PRELOAD_NONE)
+	# Cursors
+	self.init_combobox(self.gnome_settings, "cursor-theme", "combobox_cursor_theme")
 
-	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/reduced_resources", "switch_resources")
-	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/compositing_manager", "switch_composite")
-	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/titlebar_uses_system_font", "switch_wm_font")
+	# metacity stuff
+	# now we use gsettings? wonder what happens next....
+	self.metacity_settings = Gio.Settings.new("org.gnome.metacity")
+	self.init_switch(self.metacity_settings, "reduced-resources", "switch_resources")
+	self.init_switch(self.metacity_settings, "compositing-manager", "switch_composite")
+
+	# Window manager generic settings
+	self.wm_settings = Gio.Settings.new("org.gnome.desktop.wm.preferences")
+	self.init_switch(self.wm_settings, "titlebar-uses-system-font", "switch_wm_font")
 
 	# combobox fun for metacity theme layouts
 	# Metacity button layouts..
@@ -143,18 +147,15 @@ class AppearanceWindow:
 	renderer_text = Gtk.CellRendererText()
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
-	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/button_layout", "combobox_wm_layout", abnormal=True)
-
+	self.init_combobox(self.wm_settings, "button-layout", "combobox_wm_layout", abnormal=True)
 	# themes. init.
-	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/theme", "combobox_wm_themes")
-
+	self.init_combobox(self.wm_settings, "theme", "combobox_wm_themes")
 	# Init the fontboxes.
 	self.init_fontbox(self.gnome_settings, "font-name", "fontbutton_application")
 	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
 	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
 	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
-	self.init_fontbox(self.metacity_settings, "/apps/metacity/general/titlebar_font", "fontbutton_title", abnormal=True)
-
+	self.init_fontbox(self.wm_settings, "titlebar-font", "fontbutton_title")
 	# set up hinting/antaliasing boxes
 	aliasing = Gtk.ListStore(str, str)
 	aliasing.append([_("No anti-aliasing"), "none"])
@@ -183,6 +184,27 @@ class AppearanceWindow:
 	# hook up the quit button
 	self.get_widget("button_cancel").connect("clicked", Gtk.main_quit)
 
+	def show_about(widg,data=None):
+		about = Gtk.AboutDialog()
+		authors = ["Ikey Doherty <ikey@solusos.com>"]
+		about.set_authors(authors)
+		about.set_website("http://www.solusos.com")
+		about.set_website_label("SolusOS Website")
+		about.set_program_name("SolusOS Appearance Properties")
+		about.set_comments("Easily configure and theme your Gnome Classic Desktop")
+		about.set_version("3.4.3.2")
+		about.set_logo_icon_name("user-desktop")
+		license_lines = ""
+		license_txt = open("/usr/lib/solusos/solusDesktop/license.txt", "r")
+		for line in license_txt:
+			license_lines += line + "\n"
+		license_txt.close()
+		about.set_license(license_lines)
+		about.set_wrap_license(True)
+		ret = about.run()
+		about.destroy()
+
+	self.get_widget("button_about").connect("clicked", show_about)
 	self.build_metacity_preview()
 
    ''' Initialise the preview area '''
@@ -201,6 +223,7 @@ class AppearanceWindow:
 	# ThemePreview methods
 	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.themepreview")
 	icon_switch = preview_service.get_dbus_method("set_icon_name", "com.solusos.themepreview")
+	cursor_switch = preview_service.get_dbus_method("set_cursor_name", "com.solusos.themepreview")
 	def change_theme_cb(wid,data=None):
 		active = wid.get_active_iter()
 		item = wid.get_model()[active][0]
@@ -223,15 +246,29 @@ class AppearanceWindow:
 			self.get_widget("button_icon_apply").set_sensitive(False)
 		icon_switch(item)
 
+	def change_cursor_cb(wid,data=None):
+		active = wid.get_active_iter()
+		item = wid.get_model()[active][0]
+		# do we enable the apply button?
+		old_value = self.gnome_settings.get_string("cursor-theme")
+		if old_value != item:
+			self.get_widget("button_cursor_apply").set_sensitive(True)
+		else:
+			self.get_widget("button_cursor_apply").set_sensitive(False)
+		cursor_switch(item)
+		
 	# hook the combo-box up to change themes
 	box = self.get_widget("combobox_widget_theme")
 	box.connect("changed", change_theme_cb)
 	box2 = self.get_widget("combobox_icon_theme")
 	box2.connect("changed", change_icons_cb)
+	box3 = self.get_widget("combobox_cursor_theme")
+	box3.connect("changed", change_cursor_cb)
 
 	# hook up the apply buttons
 	self.get_widget("button_widget_apply").connect("clicked", self.theme_switch_cb)
 	self.get_widget("button_icon_apply").connect("clicked", self.icon_switch_cb)
+	self.get_widget("button_cursor_apply").connect("clicked", self.cursor_switch_cb)
 
    ''' Set up the metacity previewer '''
    def build_metacity_preview(self):
@@ -249,14 +286,14 @@ class AppearanceWindow:
 	# ThemePreview methods
 	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.metacitythemepreview")
 	# set it to the current theme
-	sztheme = self.metacity_settings.get_string("/apps/metacity/general/theme")
+	sztheme = self.wm_settings.get_string("theme")
 	theme_switch(sztheme)
 
 	def change_metacity_theme_cb(wid,data=None):
 		active = wid.get_active_iter()
 		item = wid.get_model()[active][0]
 		# do we enable the apply button?
-		old_value = self.metacity_settings.get_string("/apps/metacity/general/theme")
+		old_value = self.wm_settings.get_string("theme")
 		if old_value != item:
 			self.get_widget("button_apply_metacity").set_sensitive(True)
 		else:
@@ -284,10 +321,10 @@ class AppearanceWindow:
 	box = self.get_widget("combobox_wm_themes")
 	active = box.get_active_iter()
 	item = box.get_model()[active][0]
-	self.metacity_settings.set_string("/apps/metacity/general/theme", item)
+	self.wm_settings.set_string("theme", item)
 	self.get_widget("button_apply_metacity").set_sensitive(False)
 
-   ''' Change the gtk theme globally (not just inside the theme preview) '''
+   ''' Change the gtk icon theme globally (not just inside the theme preview) '''
    def icon_switch_cb(self, wid):
 	self.emitting_change = True
 	box = self.get_widget("combobox_icon_theme")
@@ -295,6 +332,15 @@ class AppearanceWindow:
 	item = box.get_model()[active][0]
 	self.gnome_settings.set_string("icon-theme", item)
 	self.get_widget("button_icon_apply").set_sensitive(False)
+
+   ''' Change the gtk cursor theme globally (not just inside the theme preview) '''
+   def cursor_switch_cb(self, wid):
+	self.emitting_change = True
+	box = self.get_widget("combobox_cursor_theme")
+	active = box.get_active_iter()
+	item = box.get_model()[active][0]
+	self.gnome_settings.set_string("cursor-theme", item)
+	self.get_widget("button_cursor_apply").set_sensitive(False)
 
    ''' Populate the combobox with theme names '''
    def build_themes_list(self):
@@ -312,6 +358,7 @@ class AppearanceWindow:
 			path = os.path.join(xdg_dir, d)
 			gtk3hopeful = os.path.join(path, 'gtk-3.0')
 			metacity_hopeful = os.path.join(path, 'metacity-1')
+
 			if os.path.exists(gtk3hopeful):
 				themes_model.append([name])
 			if os.path.exists(metacity_hopeful):
@@ -337,7 +384,7 @@ class AppearanceWindow:
 	xdg_dirs = [ '/usr/share/icons', '%s/.icons/' % homedir ]
 
 	themes_model = Gtk.ListStore(str)
-
+	cursors_model = Gtk.ListStore(str)
 	for xdg_dir in xdg_dirs:
 		if not os.path.exists(xdg_dir):
 			continue
@@ -346,8 +393,12 @@ class AppearanceWindow:
 			name = d
 			path = os.path.join(xdg_dir, d)
 			gtk3hopeful = os.path.join(path, 'index.theme')
+			cursor_hopeful = os.path.join(path, "cursor.theme")
 			if os.path.exists(gtk3hopeful):
 				themes_model.append([name])
+			if os.path.exists(cursor_hopeful):
+				cursors_model.append([name])
+
 	# now we'll put them in the combobox. so you can select em :)
 	box = self.get_widget("combobox_icon_theme")
 	box.set_model(themes_model)
@@ -355,6 +406,11 @@ class AppearanceWindow:
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
 
+	box = self.get_widget("combobox_cursor_theme")
+	box.set_model(cursors_model)
+	renderer_text = Gtk.CellRendererText()
+	box.pack_start(renderer_text, True)
+	box.add_attribute(renderer_text, "text", 0)
 
    ''' Helper function, initialises a checkbox to a setting in gsettings '''
    def init_checkbox(self, settings, key, widget_name):

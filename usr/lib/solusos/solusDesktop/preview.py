@@ -53,6 +53,10 @@ class ThemePreview(dbus.service.Object):
 	settings = self.plug.get_settings()
 	settings.set_string_property("gtk-icon-theme-name", icon_name, "gtkrc:0")
 
+   @dbus.service.method(dbus_interface = "com.solusos.themepreview", in_signature = 's', out_signature = None)
+   def set_cursor_name(self, cursor_name):
+	settings = self.plug.get_settings()
+	settings.set_string_property("gtk-cursor-theme-name", cursor_name, "gtkrc:0")
 
 if __name__ == "__main__":
 	DBusGMainLoop(set_as_default=True)
