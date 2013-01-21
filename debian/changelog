@@ -1,8 +1,14 @@
-solusdesktop (3.4.3.2) UNRELEASED; urgency=low
+solusdesktop (3.4.3.2.1-1) two; urgency=low
 
-  * UI improvements, about box
+  * Reverted to GConf for metacity
 
- -- Ikey Doherty <ikey@solusos.com>  Fri, 15 Jun 2012 19:16:22 +0000
+ -- Ikey Doherty <ikey@solusos.com>  Thu, 02 Aug 2012 00:33:35 +0100
+
+solusdesktop (3.4.3.2.1) two; urgency=low
+
+  * Don't crash on missing icon
+
+ -- Ikey Doherty <ikey@solusos.com>  Tue, 19 Jun 2012 16:32:22 +0000
 
 solusdesktop (3.4.3) two; urgency=low
 

@@ -59,7 +59,12 @@ class AppearanceWindow:
 	self.store = Gtk.ListStore(str, GdkPixbuf.Pixbuf.__gtype__)
 	iter_first = None
 	for page in self.sidePages:
-		img = self.iconTheme.load_icon(page.icon, 36, Gtk.IconLookupFlags.GENERIC_FALLBACK)
+		img = None;
+		try:
+			img = self.iconTheme.load_icon(page.icon, 36, Gtk.IconLookupFlags.GENERIC_FALLBACK)
+		except:
+			print "You are missing the %s icon from your theme.\n" % page.icon
+
 		tmpiter = self.store.append([page.name, img])
 		# set the iter to the first item so we can select it :)
 		if iter_first is None:
@@ -128,14 +133,12 @@ class AppearanceWindow:
 	self.init_combobox(self.gnome_settings, "cursor-theme", "combobox_cursor_theme")
 
 	# metacity stuff
-	# now we use gsettings? wonder what happens next....
-	self.metacity_settings = Gio.Settings.new("org.gnome.metacity")
-	self.init_switch(self.metacity_settings, "reduced-resources", "switch_resources")
-	self.init_switch(self.metacity_settings, "compositing-manager", "switch_composite")
+	self.metacity_settings = GConf.Client.get_default()
+	self.metacity_settings.add_dir("/apps/metacity/general", GConf.ClientPreloadType.PRELOAD_NONE)
+	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/reduced_resources", "switch_resources")
+	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/compositing_manager", "switch_composite")
+	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/titlebar_uses_system_font", "switch_wm_font")
 
-	# Window manager generic settings
-	self.wm_settings = Gio.Settings.new("org.gnome.desktop.wm.preferences")
-	self.init_switch(self.wm_settings, "titlebar-uses-system-font", "switch_wm_font")
 
 	# combobox fun for metacity theme layouts
 	# Metacity button layouts..
@@ -147,15 +150,18 @@ class AppearanceWindow:
 	renderer_text = Gtk.CellRendererText()
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
-	self.init_combobox(self.wm_settings, "button-layout", "combobox_wm_layout", abnormal=True)
+
+	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/button_layout", "combobox_wm_layout", abnormal=True)
 	# themes. init.
-	self.init_combobox(self.wm_settings, "theme", "combobox_wm_themes")
+	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/theme", "combobox_wm_themes")
+
 	# Init the fontboxes.
 	self.init_fontbox(self.gnome_settings, "font-name", "fontbutton_application")
 	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
 	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
 	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
-	self.init_fontbox(self.wm_settings, "titlebar-font", "fontbutton_title")
+	self.init_fontbox(self.metacity_settings, "/apps/metacity/general/titlebar_font", "fontbutton_title", abnormal=True)
+
 	# set up hinting/antaliasing boxes
 	aliasing = Gtk.ListStore(str, str)
 	aliasing.append([_("No anti-aliasing"), "none"])
@@ -286,14 +292,14 @@ class AppearanceWindow:
 	# ThemePreview methods
 	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.metacitythemepreview")
 	# set it to the current theme
-	sztheme = self.wm_settings.get_string("theme")
+	sztheme = self.metacity_settings.get_string("/apps/metacity/general/theme")
 	theme_switch(sztheme)
 
 	def change_metacity_theme_cb(wid,data=None):
 		active = wid.get_active_iter()
 		item = wid.get_model()[active][0]
 		# do we enable the apply button?
-		old_value = self.wm_settings.get_string("theme")
+		old_value = self.metacity_settings.get_string("/apps/metacity/general/theme")
 		if old_value != item:
 			self.get_widget("button_apply_metacity").set_sensitive(True)
 		else:
@@ -321,7 +327,7 @@ class AppearanceWindow:
 	box = self.get_widget("combobox_wm_themes")
 	active = box.get_active_iter()
 	item = box.get_model()[active][0]
-	self.wm_settings.set_string("theme", item)
+	self.metacity_settings.set_string("/apps/metacity/general/theme", item)
 	self.get_widget("button_apply_metacity").set_sensitive(False)
 
    ''' Change the gtk icon theme globally (not just inside the theme preview) '''
@@ -578,6 +584,7 @@ class AppearanceWindow:
 	settings.connect("changed::%s" % key, the_combo_cb)
 	if abnormal:
 		widget.connect("changed", go_change_combo)
+
 
    ''' Helper function, initialises a combobox to a gconf value and binds it '''
    def init_gconf_combobox(self, settings, key, widget_name, abnormal=False):
