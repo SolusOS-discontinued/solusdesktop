@@ -103,8 +103,8 @@ class AppearanceWindow:
         self.get_widget("label_im_menu").set_label(_("Show Input Methods menu"))
         self.get_widget("label_unicode").set_label(_("Show Unicode Control Character menu"))
 
-	# Desktop (nautilus) settings
-	self.desktop_settings = Gio.Settings.new("org.gnome.nautilus.desktop")
+	# Desktop (athena) settings
+	self.desktop_settings = Gio.Settings.new("org.gnome.athena.desktop")
         # Desktop page
         self.init_switch(self.desktop_settings, "computer-icon-visible", "switch_computer")
         self.init_switch(self.desktop_settings, "home-icon-visible", "switch_home")
