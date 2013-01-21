@@ -104,7 +104,7 @@ class AppearanceWindow:
         self.get_widget("label_unicode").set_label(_("Show Unicode Control Character menu"))
 
 	# Desktop (athena) settings
-	self.desktop_settings = Gio.Settings.new("org.gnome.athena.desktop")
+	self.desktop_settings = Gio.Settings.new("com.solusos.athena.desktop")
         # Desktop page
         self.init_switch(self.desktop_settings, "computer-icon-visible", "switch_computer")
         self.init_switch(self.desktop_settings, "home-icon-visible", "switch_home")
@@ -133,11 +133,11 @@ class AppearanceWindow:
 	self.init_combobox(self.gnome_settings, "cursor-theme", "combobox_cursor_theme")
 
 	# metacity stuff
-	self.metacity_settings = GConf.Client.get_default()
-	self.metacity_settings.add_dir("/apps/metacity/general", GConf.ClientPreloadType.PRELOAD_NONE)
-	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/reduced_resources", "switch_resources")
-	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/compositing_manager", "switch_composite")
-	self.init_switch_gconf(self.metacity_settings, "/apps/metacity/general/titlebar_uses_system_font", "switch_wm_font")
+	self.consortium_settings = Gio.Settings.new("org.consort.consortium")
+	self.init_switch(self.consortium_settings, "reduced-resources", "switch_resources")
+	self.init_switch(self.consortium_settings, "compositing-manager", "switch_composite")
+	self.wm_settings = Gio.Settings.new("org.gnome.desktop.wm.preferences")
+	self.init_switch(self.wm_settings, "titlebar-uses-system-font", "switch_wm_font")
 
 
 	# combobox fun for metacity theme layouts
@@ -151,16 +151,16 @@ class AppearanceWindow:
 	box.pack_start(renderer_text, True)
 	box.add_attribute(renderer_text, "text", 0)
 
-	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/button_layout", "combobox_wm_layout", abnormal=True)
+	self.init_combobox(self.wm_settings, "button-layout", "combobox_wm_layout", abnormal=True)
 	# themes. init.
-	self.init_gconf_combobox(self.metacity_settings, "/apps/metacity/general/theme", "combobox_wm_themes")
+	self.init_combobox(self.wm_settings, "theme", "combobox_wm_themes")
 
 	# Init the fontboxes.
 	self.init_fontbox(self.gnome_settings, "font-name", "fontbutton_application")
 	self.init_fontbox(self.gnome_settings, "document-font-name", "fontbutton_document")
 	self.init_fontbox(self.desktop_settings, "font", "fontbutton_desktop")
 	self.init_fontbox(self.gnome_settings, "monospace-font-name", "fontbutton_mono")
-	self.init_fontbox(self.metacity_settings, "/apps/metacity/general/titlebar_font", "fontbutton_title", abnormal=True)
+	self.init_fontbox(self.wm_settings, "titlebar-font", "fontbutton_title")
 
 	# set up hinting/antaliasing boxes
 	aliasing = Gtk.ListStore(str, str)
@@ -279,8 +279,8 @@ class AppearanceWindow:
    ''' Set up the metacity previewer '''
    def build_metacity_preview(self):
 	bus = dbus.SessionBus()
-	preview_service = bus.get_object("com.solusos.metacitythemepreview", "/com/solusos/metacitythemepreview")
-	get_plug = preview_service.get_dbus_method("get_plug_id", "com.solusos.metacitythemepreview")
+	preview_service = bus.get_object("com.solusos.consortiumthemepreview", "/com/solusos/consortiumthemepreview")
+	get_plug = preview_service.get_dbus_method("get_plug_id", "com.solusos.consortiumthemepreview")
 	plug_id = get_plug()
 
 	# we can now embed the preview widget as we got its plug id :)
@@ -290,16 +290,16 @@ class AppearanceWindow:
 	self.get_widget("box_metacity_preview").show_all()
 
 	# ThemePreview methods
-	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.metacitythemepreview")
+	theme_switch = preview_service.get_dbus_method("set_theme_name", "com.solusos.consortiumthemepreview")
 	# set it to the current theme
-	sztheme = self.metacity_settings.get_string("/apps/metacity/general/theme")
+	sztheme = self.wm_settings.get_string("theme")
 	theme_switch(sztheme)
 
 	def change_metacity_theme_cb(wid,data=None):
 		active = wid.get_active_iter()
 		item = wid.get_model()[active][0]
 		# do we enable the apply button?
-		old_value = self.metacity_settings.get_string("/apps/metacity/general/theme")
+		old_value = self.wm_settings.get_string("theme")
 		if old_value != item:
 			self.get_widget("button_apply_metacity").set_sensitive(True)
 		else:
@@ -327,7 +327,7 @@ class AppearanceWindow:
 	box = self.get_widget("combobox_wm_themes")
 	active = box.get_active_iter()
 	item = box.get_model()[active][0]
-	self.metacity_settings.set_string("/apps/metacity/general/theme", item)
+	self.wm_settings.set_string("theme", item)
 	self.get_widget("button_apply_metacity").set_sensitive(False)
 
    ''' Change the gtk icon theme globally (not just inside the theme preview) '''
@@ -480,9 +480,9 @@ class AppearanceWindow:
 
    ''' Notify helper '''
    def add_notify(self, key, widget):
-	notify_id = self.metacity_settings.notify_add(key, self.key_changed_callback, widget)
+	notify_id = self.consortium_settings.notify_add(key, self.key_changed_callback, widget)
 	widget.set_data('notify_id', notify_id)
-	widget.set_data('client', self.metacity_settings)
+	widget.set_data('client', self.consortium_settings)
 	widget.connect("destroy", self.destroy_callback)
 
    ''' destroy the associated notifications '''
