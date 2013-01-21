@@ -1,4 +1,4 @@
 [D-BUS Service]
-Name=com.solusos.metacitythemepreview
+Name=com.solusos.consortiumthemepreview
 Exec=/usr/lib/solusos/solusDesktop/consortium_preview.py
 
