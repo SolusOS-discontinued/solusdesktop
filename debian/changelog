@@ -1,3 +1,9 @@
+solusdesktop (3.4.4) two; urgency=low
+
+  * Compatible with Consort Desktop
+
+ -- Ikey Doherty <ikey@solusos.com>  Mon, 21 Jan 2013 20:43:02 +0000
+
 solusdesktop (3.4.3.2.1-1) two; urgency=low
 
   * Reverted to GConf for metacity
